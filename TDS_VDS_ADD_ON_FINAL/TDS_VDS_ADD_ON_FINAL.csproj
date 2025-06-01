@@ -46,8 +46,11 @@
     <Reference Include="SAPBusinessOneSDK" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helper\FormModifier.cs" />
     <Compile Include="Helper\Global.cs" />
     <Compile Include="Helper\GlobalFunction.cs" />
+    <Compile Include="Helper\TDSVDSCalculator.cs" />
+    <Compile Include="Modules\PurchaseOrder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Menu.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -58,9 +61,7 @@
       <DependentUpon>FormTVMaster.b1f</DependentUpon>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Modules\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="Resources\FormTVGrpMaster.b1f">
       <FormCategory>UserForm</FormCategory>

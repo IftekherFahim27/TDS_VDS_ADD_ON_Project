@@ -153,12 +153,6 @@ namespace TDS_VDS_ADD_ON_FINAL.Resources
                 pForm.ActiveItem = "ETRATE";
                 return BubbleEvent = false;
             }
-            else if (remarks == "")
-            {
-                Global.GFunc.ShowError("Enter the Remarks");
-                pForm.ActiveItem = "ETREMARK";
-                return BubbleEvent = false;
-            }
             else if (whldtype == "")
             {
                 Global.GFunc.ShowError("Select The With Hold Type");

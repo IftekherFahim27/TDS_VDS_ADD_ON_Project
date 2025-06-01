@@ -51,9 +51,18 @@ namespace TDS_VDS_ADD_ON_FINAL
                 {
                     FormTVGrpMaster activeForm = new FormTVGrpMaster();
                     activeForm.Show();
-                    //SAPbouiCOM.Form oform = (SAPbouiCOM.Form)Application.SBO_Application.Forms.Item("FIL_FRM_MH_TVGRP");
-                   // SAPbouiCOM.DBDataSource DBDataSourceLine = (SAPbouiCOM.DBDataSource)oform.DataSources.DBDataSources.Item("@FIL_MH_TVGRPM");
+                    SAPbouiCOM.Form oform = (SAPbouiCOM.Form)Application.SBO_Application.Forms.Item("FIL_FRM_MH_TVGRP");
+                    oform.Freeze(true);
 
+                    SAPbouiCOM.DBDataSource DBDataSourceLine = (SAPbouiCOM.DBDataSource)oform.DataSources.DBDataSources.Item("@FIL_MR_TVGRPM");
+                    SAPbouiCOM.Matrix MATGRP = (SAPbouiCOM.Matrix)oform.Items.Item("MATGRPRW").Specific;
+                    //Global.GFunc.AddRow(MTX_01, DBDataSourceLine);
+                    if (MATGRP.VisualRowCount == 0)
+                    {
+                        Global.GFunc.SetNewLine(MATGRP, DBDataSourceLine, 1, "");// added the line for matrix 1
+                    }
+
+                    oform.Freeze(false);
 
                 }
 

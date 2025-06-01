@@ -1,6 +1,7 @@
 ﻿using SAPbouiCOM.Framework;
 using System;
 using System.Collections.Generic;
+using TDS_VDS_ADD_ON_FINAL.Modules;
 
 namespace TDS_VDS_ADD_ON_FINAL
 {
@@ -27,6 +28,11 @@ namespace TDS_VDS_ADD_ON_FINAL
                 }
                 Menu MyMenu = new Menu();
                 MyMenu.BasicStart();
+
+                PurchaseOrder objPO;
+                objPO = new PurchaseOrder();
+
+
                 oApp.RegisterMenuEventHandler(MyMenu.SBO_Application_MenuEvent);
                 Application.SBO_Application.AppEvent += new SAPbouiCOM._IApplicationEvents_AppEventEventHandler(SBO_Application_AppEvent);
                 oApp.Run();
