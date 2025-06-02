@@ -50,6 +50,11 @@
     <Compile Include="Helper\Global.cs" />
     <Compile Include="Helper\GlobalFunction.cs" />
     <Compile Include="Helper\TDSVDSCalculator.cs" />
+    <Compile Include="Modules\ApDwPaymentInvoice.cs" />
+    <Compile Include="Modules\APDwPaymentRequest.cs" />
+    <Compile Include="Modules\APInvoice.cs" />
+    <Compile Include="Modules\OutgoingPayment.cs" />
+    <Compile Include="Modules\PaymentMeans.cs" />
     <Compile Include="Modules\PurchaseOrder.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Menu.cs" />

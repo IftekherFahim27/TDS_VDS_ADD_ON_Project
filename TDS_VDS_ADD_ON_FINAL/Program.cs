@@ -32,6 +32,23 @@ namespace TDS_VDS_ADD_ON_FINAL
                 PurchaseOrder objPO;
                 objPO = new PurchaseOrder();
 
+                APDwPaymentRequest objAPDR;
+                objAPDR = new APDwPaymentRequest();
+
+                ApDwPaymentInvoice objAPDI;
+                objAPDI = new ApDwPaymentInvoice();
+
+                APInvoice objAPI;
+                objAPI = new APInvoice();
+
+                OutgoingPayment objOP;
+                objOP = new OutgoingPayment();
+
+                PaymentsMeans objPM;
+                objPM = new PaymentsMeans();
+
+
+
 
                 oApp.RegisterMenuEventHandler(MyMenu.SBO_Application_MenuEvent);
                 Application.SBO_Application.AppEvent += new SAPbouiCOM._IApplicationEvents_AppEventEventHandler(SBO_Application_AppEvent);
