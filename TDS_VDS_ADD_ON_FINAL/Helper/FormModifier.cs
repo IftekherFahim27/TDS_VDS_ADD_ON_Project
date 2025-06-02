@@ -79,32 +79,7 @@ namespace TDS_VDS_ADD_ON_FINAL.Helper
 
 
 
-                        //total input vat
-                        //static text
-                        SAPbouiCOM.Item StIVat = oform.Items.Add("ST_IVAT", SAPbouiCOM.BoFormItemTypes.it_STATIC); // we are going to create
-                        SAPbouiCOM.Item osrcvat = oform.Items.Item("ST_VDS");
-                        StIVat.Top = osrcvat.Top + 15;
-                        StIVat.Height = osrcvat.Height;
-                        StIVat.Width = osrcvat.Width;
-                        StIVat.Left = osrcvat.Left;
-
-
                       
-                        SAPbouiCOM.StaticText osivat = ((SAPbouiCOM.StaticText)(StIVat.Specific));
-                        osivat.Caption = "Total Input VAT";
-
-                        //Edit text
-                        SAPbouiCOM.Item EtIVat = oform.Items.Add("ET_IVAT", SAPbouiCOM.BoFormItemTypes.it_EDIT); // we are going to create
-                        SAPbouiCOM.Item orscivat = oform.Items.Item("ET_VDS");
-                        EtIVat.Top = orscivat.Top+15;
-                        EtIVat.Height = orscivat.Height;
-                        EtIVat.Width = orscivat.Width;
-                        EtIVat.Left = orscivat.Left;
-
-                        //specific property for edit text.
-                        SAPbouiCOM.EditText OETIVAT = (SAPbouiCOM.EditText)(EtIVat.Specific);
-                        OETIVAT.Item.Enabled = false; // to disABLE A FIELD.
-                        OETIVAT.DataBind.SetBound(true, db, "U_TINVTAMT"); //TO SAVE THE VALUE IN TABLE
 
                         // Adding CFL 
                         // === Step 1: Add CFL ===
@@ -126,12 +101,14 @@ namespace TDS_VDS_ADD_ON_FINAL.Helper
 
                         SAPbouiCOM.Column oColumn2 = oMatrix.Columns.Item("U_VDSAMT");
                         //oColumn2.Editable = true;
-                        SAPbouiCOM.Column oColumn3 = oMatrix.Columns.Item("U_INVTAMT");
+                      
 
                         oColumn.ChooseFromListUID = "CFL_TV";
                         oColumn.ChooseFromListAlias = "Code";  // This must match the field in the UDO
 
                         Application.SBO_Application.SetStatusBarMessage("CFL successfully added to U_TVCODE", SAPbouiCOM.BoMessageTime.bmt_Short, false);
+
+                      
 
                     }
 
@@ -157,61 +134,25 @@ namespace TDS_VDS_ADD_ON_FINAL.Helper
                                 if (dt != null)
                                 {
                                     string grpCode = dt.GetValue("Code", 0).ToString();
-
-                                    SAPbobsCOM.Recordset oRS = (SAPbobsCOM.Recordset)Global.oComp.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset);
-                                    string query = string.Format(@"SELECT T1.""U_RANK"",T0.""U_WHLDTYPE"" ,T0.""U_RATE"" FROM ""@FIL_MH_TVM"" T0 INNER JOIN ""@FIL_MR_TVGRPM"" T1 ON T0.""Code"" = T1.""U_TAXCODE"" WHERE T1.""Code"" = '{0}'", grpCode);
-
-                                    oRS.DoQuery(query);
-
-                                    // Create temporary holders
-                                    double tdsRate = 0.0, vdsRate = 0.0, inputRate = 0.0;
-                                    string tdsRank = "", vdsRank = "", inputRank = "";
-
-                                    while (!oRS.EoF)
-                                    {
-                                        string type = oRS.Fields.Item("U_WHLDTYPE").Value.ToString(); // T, V, or I
-                                        string rank = oRS.Fields.Item("U_RANK").Value.ToString();
-                                        double rate = Convert.ToDouble(oRS.Fields.Item("U_RATE").Value);
-
-                                        if (type == "T") // TDS
-                                        {
-                                            tdsRate = rate;
-                                            tdsRank = rank;
-                                        }
-                                        else if (type == "V") // VDS
-                                        {
-                                            vdsRate = rate;
-                                            vdsRank = rank;
-                                        }
-                                        else if (type == "I") // Input VAT
-                                        {
-                                            inputRate = rate;
-                                            inputRank = rank;
-                                        }
-
-                                        oRS.MoveNext();
-                                    }
-
-
                                     int row = pVal.Row;
 
-                                    // Get amount from column 21
-                                    SAPbouiCOM.EditText oAmtCell = (SAPbouiCOM.EditText)oMatrix.Columns.Item("21").Cells.Item(row).Specific;
-                                    string amtStr = oAmtCell.Value.Trim();
-                                    string numericValue = amtStr.StartsWith("BDT") ? amtStr.Substring(4).Trim() : amtStr;
-                                    double amt = double.TryParse(numericValue, out double parsedAmt) ? parsedAmt : 0.0;
+                                    CollectData(grpCode, oMatrix, row, out double amt, out double tdsRate, out string tdsRank, out double vdsRate, out string vdsRank);
+
+                                    SAPbouiCOM.ComboBox inclu = (SAPbouiCOM.ComboBox)oMatrix.Columns.Item("U_TAXINCL").Cells.Item(row).Specific;
+                                    string icluStr = inclu.Value.Trim();
 
 
                                     // Calculate TDS and VDS
-                                    //(double tdsAmt, double vdsAmt) = TDSVDSCalculator.CalculateTDSVDS(amt, tdsPerc, vdsPerc, rank, vdsrank);
+                                    (double tdsAmt, double vdsAmt) = TDSVDSCalculator.CalculateTDSVDS(amt, tdsRate , tdsRank , vdsRate , vdsRank , icluStr);
 
                                     // Set TDSAMT and VDSAMT in matrix (POR1 UDFs)
-                                   // ((SAPbouiCOM.EditText)oMatrix.Columns.Item("U_TDSAMT").Cells.Item(row).Specific).Value = tdsAmt.ToString("F2");
-                                   // ((SAPbouiCOM.EditText)oMatrix.Columns.Item("U_VDSAMT").Cells.Item(row).Specific).Value = vdsAmt.ToString("F2");
+                                    ((SAPbouiCOM.EditText)oMatrix.Columns.Item("U_TDSAMT").Cells.Item(row).Specific).Value = tdsAmt.ToString("F2");
+                                    ((SAPbouiCOM.EditText)oMatrix.Columns.Item("U_VDSAMT").Cells.Item(row).Specific).Value = vdsAmt.ToString("F2");
+                                   
                                     ((SAPbouiCOM.EditText)oMatrix.Columns.Item("U_TVCODE").Cells.Item(row).Specific).Value = grpCode;
 
 
-                                    //TDSVDSCalculator.CalculateTotalTDSVDS(oForm);
+                                    TDSVDSCalculator.CalculateTotalTDSVDS(oForm);
 
                                 }
                             }
@@ -249,35 +190,13 @@ namespace TDS_VDS_ADD_ON_FINAL.Helper
 
                                 if (!string.IsNullOrWhiteSpace(tvCode))
                                 {
+                                    CollectData(tvCode, oMatrix, row, out double amt, out double tdsRate, out string tdsRank, out double vdsRate, out string vdsRank);
 
-
-                                    // Get updated value of column 21
-                                    SAPbouiCOM.EditText oAmtCell = (SAPbouiCOM.EditText)oMatrix.Columns.Item("21").Cells.Item(row).Specific;
-                                    string amtStr = oAmtCell.Value.Trim();
-                                    string numericValue = amtStr.StartsWith("BDT") ? amtStr.Substring(4).Trim() : amtStr;
-
-                                    double amt = double.TryParse(numericValue, out double parsedAmt) ? parsedAmt : 0.0;
-
+                                    SAPbouiCOM.ComboBox inclu = (SAPbouiCOM.ComboBox)oMatrix.Columns.Item("U_TAXINCL").Cells.Item(row).Specific;
+                                    string icluStr = inclu.Value.Trim();
 
                                     // Calculate TDS and VDS
-
-
-                                    SAPbobsCOM.Recordset oRS = (SAPbobsCOM.Recordset)Global.oComp.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset);
-                                    string qstr = string.Format(@"SELECT U_TDSP, U_VDSP, U_TDSRNK, U_VDSRNK FROM {0}@FIL_MH_TDSVDSM{0} WHERE {0}Code{0} ='" + tvCode + "'", '"');
-                                    oRS.DoQuery(qstr);
-
-
-
-
-                                    double tdsPerc = Convert.ToDouble(oRS.Fields.Item("U_TDSP").Value);
-                                    double vdsPerc = Convert.ToDouble(oRS.Fields.Item("U_VDSP").Value);
-                                    string tdsrank = Convert.ToString(oRS.Fields.Item("U_TDSRNK").Value);
-                                    string vdsrank = Convert.ToString(oRS.Fields.Item("U_VDSRNK").Value);
-
-
-
-                                    //Calculate TDS VDS
-                                    (double tdsAmt, double vdsAmt) = TDSVDSCalculator.CalculateTDSVDS(amt, tdsPerc, vdsPerc, tdsrank, vdsrank);
+                                    (double tdsAmt, double vdsAmt) = TDSVDSCalculator.CalculateTDSVDS(amt, tdsRate, tdsRank, vdsRate, vdsRank, icluStr);
 
 
 
@@ -286,6 +205,7 @@ namespace TDS_VDS_ADD_ON_FINAL.Helper
 
                                     SAPbouiCOM.EditText VDS = (SAPbouiCOM.EditText)oMatrix.Columns.Item("U_VDSAMT").Cells.Item(row).Specific;
                                     VDS.Value = vdsAmt.ToString("F2");
+
 
                                     TDSVDSCalculator.CalculateTotalTDSVDS(oForm);
 
@@ -309,13 +229,15 @@ namespace TDS_VDS_ADD_ON_FINAL.Helper
                             {
 
                                 //(double tdsAmt, double vdsAmt) = CalculateTDSVDS(0.0, 0.0, 0.0);
-                                (double tdsAmt, double vdsAmt) = TDSVDSCalculator.CalculateTDSVDS(0.0, 0.0, 0.0, "1", "1");
+                                (double tdsAmt, double vdsAmt) = TDSVDSCalculator.CalculateTDSVDS(0.0, 0.0,"1", 0.0, "1", "Y");
 
                                 SAPbouiCOM.EditText TDS = (SAPbouiCOM.EditText)oMatrix.Columns.Item("U_TDSAMT").Cells.Item(row).Specific;
                                 TDS.Value = tdsAmt.ToString("F2");
 
                                 SAPbouiCOM.EditText VDS = (SAPbouiCOM.EditText)oMatrix.Columns.Item("U_VDSAMT").Cells.Item(row).Specific;
                                 VDS.Value = vdsAmt.ToString("F2");
+
+                                
 
                                 TDSVDSCalculator.CalculateTotalTDSVDS(oForm);
 
@@ -324,6 +246,53 @@ namespace TDS_VDS_ADD_ON_FINAL.Helper
                             }
                         }
                     }
+
+                    if (pVal.FormTypeEx == formnum && pVal.ItemUID == "38" && pVal.ColUID == "U_TAXINCL" && pVal.EventType == SAPbouiCOM.BoEventTypes.et_COMBO_SELECT && pVal.BeforeAction == false)
+                    {
+                        SAPbouiCOM.Form oForm = Application.SBO_Application.Forms.Item(pVal.FormUID);
+                        SAPbouiCOM.Matrix oMatrix = (SAPbouiCOM.Matrix)oform.Items.Item("38").Specific;
+
+                        // Access the ComboBox control in the specific cell
+                        SAPbouiCOM.ComboBox cbCell = (SAPbouiCOM.ComboBox)oMatrix.Columns.Item("U_TAXINCL").Cells.Item(pVal.Row).Specific;
+                        string selectedValue = cbCell.Selected.Value;
+
+                        SAPbouiCOM.EditText etv = (SAPbouiCOM.EditText)oMatrix.Columns.Item("U_TVCODE").Cells.Item(pVal.Row).Specific;
+                        string grpCode = etv.Value.Trim();
+
+                        // Example: Update another column based on selection
+                        if (selectedValue == "Y")
+                        {
+                            CollectData(grpCode, oMatrix, pVal.Row, out double amt, out double tdsRate, out string tdsRank, out double vdsRate, out string vdsRank);
+                           
+                            (double tdsAmt, double vdsAmt) = TDSVDSCalculator.CalculateTDSVDS(amt, tdsRate, tdsRank, vdsRate, vdsRank, selectedValue);
+
+                            SAPbouiCOM.EditText TDS = (SAPbouiCOM.EditText)oMatrix.Columns.Item("U_TDSAMT").Cells.Item(pVal.Row).Specific;
+                            TDS.Value = tdsAmt.ToString("F2");
+
+                            SAPbouiCOM.EditText VDS = (SAPbouiCOM.EditText)oMatrix.Columns.Item("U_VDSAMT").Cells.Item(pVal.Row).Specific;
+                            VDS.Value = vdsAmt.ToString("F2");
+
+
+                            TDSVDSCalculator.CalculateTotalTDSVDS(oForm);
+                        }
+                        else if (selectedValue == "N")
+                        {
+                            CollectData(grpCode, oMatrix, pVal.Row, out double amt, out double tdsRate, out string tdsRank, out double vdsRate, out string vdsRank);
+                            
+                            (double tdsAmt, double vdsAmt) = TDSVDSCalculator.CalculateTDSVDS(amt, tdsRate, tdsRank, vdsRate, vdsRank, selectedValue);
+
+                            SAPbouiCOM.EditText TDS = (SAPbouiCOM.EditText)oMatrix.Columns.Item("U_TDSAMT").Cells.Item(pVal.Row).Specific;
+                            TDS.Value = tdsAmt.ToString("F2");
+
+                            SAPbouiCOM.EditText VDS = (SAPbouiCOM.EditText)oMatrix.Columns.Item("U_VDSAMT").Cells.Item(pVal.Row).Specific;
+                            VDS.Value = vdsAmt.ToString("F2");
+
+
+                            TDSVDSCalculator.CalculateTotalTDSVDS(oForm);
+                        }
+                    }
+
+
 
 
 
@@ -335,6 +304,62 @@ namespace TDS_VDS_ADD_ON_FINAL.Helper
                 Application.SBO_Application.SetStatusBarMessage("Error in Itemevnt for SAP Screen - " + ex.ToString(), SAPbouiCOM.BoMessageTime.bmt_Medium, true);
             }
         }
+
+
+        public static void CollectData(string grpCode, SAPbouiCOM.Matrix oMatrix, int row, out double amt, out double tdsRate, out string tdsRank, out double vdsRate, out string vdsRank)
+        {
+            // Initialize output variables
+            amt = 0.0;
+            tdsRate = 0.0;
+            vdsRate = 0.0;
+            tdsRank = "";
+            vdsRank = "";
+
+            try
+            {
+                // Get updated value from column 21
+                SAPbouiCOM.EditText oAmtCell = (SAPbouiCOM.EditText)oMatrix.Columns.Item("21").Cells.Item(row).Specific;
+                string amtStr = oAmtCell.Value.Trim();
+                string numericValue = amtStr.StartsWith("BDT") ? amtStr.Substring(4).Trim() : amtStr;
+
+                amt = double.TryParse(numericValue, out double parsedAmt) ? parsedAmt : 0.0;
+
+                // Query for TDS and VDS rates
+                SAPbobsCOM.Recordset oRS = (SAPbobsCOM.Recordset)Global.oComp.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset);
+                string query = $@"
+            SELECT T1.""U_RANK"", T0.""U_WHLDTYPE"", T0.""U_RATE""
+            FROM ""@FIL_MH_TVM"" T0
+            INNER JOIN ""@FIL_MR_TVGRPM"" T1 ON T0.""Code"" = T1.""U_TAXCODE""
+            WHERE T1.""Code"" = '{grpCode}'";
+
+                oRS.DoQuery(query);
+
+                while (!oRS.EoF)
+                {
+                    string type = oRS.Fields.Item("U_WHLDTYPE").Value.ToString();
+                    string rank = oRS.Fields.Item("U_RANK").Value.ToString();
+                    double rate = Convert.ToDouble(oRS.Fields.Item("U_RATE").Value);
+
+                    if (type == "T") // TDS
+                    {
+                        tdsRate = rate;
+                        tdsRank = rank;
+                    }
+                    else if (type == "V") // VDS
+                    {
+                        vdsRate = rate;
+                        vdsRank = rank;
+                    }
+
+                    oRS.MoveNext();
+                }
+            }
+            catch (Exception ex)
+            {
+                Application.SBO_Application.MessageBox("Error in CollectData: " + ex.Message);
+            }
+        }
+
 
 
     }
