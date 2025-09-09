@@ -96,6 +96,14 @@ namespace TDS_VDS_ADD_ON_FINAL.Resources
                     
 
                 }
+               
+                SAPbouiCOM.DBDataSource DBDataSourceLine = oform.DataSources.DBDataSources.Item("@FIL_MR_TVGRPM");
+                SAPbouiCOM.Matrix MATGRPRW = (SAPbouiCOM.Matrix)oform.Items.Item("MATGRPRW").Specific;
+                int lastRow = MATGRPRW.RowCount;
+                if (pVal.Row == lastRow)
+                {
+                    Global.GFunc.SetNewLine(MATGRPRW, DBDataSourceLine, 1, "");
+                }
             }
         }
 
@@ -169,12 +177,8 @@ namespace TDS_VDS_ADD_ON_FINAL.Resources
 
             if (rowCount > 0)
             {
-                string lasttaxCode = oDBDetail.GetValue("U_TAXCODE", rowCount - 1).Trim();
-                string lasttaxName = oDBDetail.GetValue("U_TAXDESC", rowCount - 1).Trim();
-                string lastrank = oDBDetail.GetValue("U_RANK", rowCount - 1).Trim();
-                string lastwtype = oDBDetail.GetValue("U_WHLDTYPE", rowCount - 1).Trim();
-
-                if (string.IsNullOrEmpty(lasttaxCode) && string.IsNullOrEmpty(lasttaxName) && string.IsNullOrEmpty(lastrank) && string.IsNullOrEmpty(lastwtype))
+                string lasttaxCode = oDBDetail.GetValue("U_TAXCODE", rowCount - 1).Trim();                                                                                                                                                                          
+                if (string.IsNullOrEmpty(lasttaxCode))
                 {
                     MATGRPRW.DeleteRow(rowCount);
                     oDBDetail.RemoveRecord(rowCount - 1);
@@ -188,28 +192,28 @@ namespace TDS_VDS_ADD_ON_FINAL.Resources
 
         private void MATGRPRW_LostFocusAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal)
         {
-            if (pVal.ColUID == "COLRANK")
-            {
-                SAPbouiCOM.Form oform = Application.SBO_Application.Forms.Item(pVal.FormUID);
-                SAPbouiCOM.Matrix oMatrix = (SAPbouiCOM.Matrix)oform.Items.Item("MATGRPRW").Specific;
+            //if (pVal.ColUID == "COLRANK")
+            //{
+            //    SAPbouiCOM.Form oform = Application.SBO_Application.Forms.Item(pVal.FormUID);
+            //    SAPbouiCOM.Matrix oMatrix = (SAPbouiCOM.Matrix)oform.Items.Item("MATGRPRW").Specific;
 
-                // Get total rows in the matrix
-                int totalRows = oMatrix.RowCount;
+            //    // Get total rows in the matrix
+            //    int totalRows = oMatrix.RowCount;
 
-                // Proceed only if the row that lost focus is the last row
-                if (pVal.Row == totalRows)
-                {
-                    SAPbouiCOM.EditText txtRank = (SAPbouiCOM.EditText)oMatrix.Columns.Item("COLRANK").Cells.Item(pVal.Row).Specific;
-                    string rankValue = txtRank.Value.Trim();
+            //    // Proceed only if the row that lost focus is the last row
+            //    if (pVal.Row == totalRows)
+            //    {
+            //        SAPbouiCOM.EditText txtRank = (SAPbouiCOM.EditText)oMatrix.Columns.Item("COLRANK").Cells.Item(pVal.Row).Specific;
+            //        string rankValue = txtRank.Value.Trim();
 
-                    if (!string.IsNullOrEmpty(rankValue))
-                    {
-                        // Add a new line only if the current last row has value
-                        SAPbouiCOM.DBDataSource DBDataSourceLine = oform.DataSources.DBDataSources.Item("@FIL_MR_TVGRPM");
-                        Global.GFunc.SetNewLine(oMatrix, DBDataSourceLine, 1, "");
-                    }
-                }
-            }
+            //        if (!string.IsNullOrEmpty(rankValue))
+            //        {
+            //            // Add a new line only if the current last row has value
+            //            SAPbouiCOM.DBDataSource DBDataSourceLine = oform.DataSources.DBDataSources.Item("@FIL_MR_TVGRPM");
+            //            Global.GFunc.SetNewLine(oMatrix, DBDataSourceLine, 1, "");
+            //        }
+            //    }
+            //}
         }
 
 

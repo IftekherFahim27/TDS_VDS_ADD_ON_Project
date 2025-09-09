@@ -53,7 +53,7 @@ namespace TDS_VDS_ADD_ON_FINAL.Modules
                         oNewItemN = oform.Items.Add("btn1", SAPbouiCOM.BoFormItemTypes.it_BUTTON);
                         oItem = oform.Items.Item("8");
 
-                        oNewItemN.Left = oItem.Left + 140;
+                        oNewItemN.Left = oItem.Left + 240;
                         oNewItemN.Width = 80;
                         oNewItemN.Height = oItem.Height;
                         oNewItemN.Top = oItem.Top;

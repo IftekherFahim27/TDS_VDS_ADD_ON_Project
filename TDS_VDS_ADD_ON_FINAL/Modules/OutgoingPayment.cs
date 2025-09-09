@@ -35,7 +35,7 @@ namespace TDS_VDS_ADD_ON_FINAL.Modules
                         //Total TDS Amount
 
                         SAPbouiCOM.Item StTDS = oform.Items.Add("ST_TDS", SAPbouiCOM.BoFormItemTypes.it_STATIC); // we are going to create
-                        SAPbouiCOM.Item osrc = oform.Items.Item("53");
+                        SAPbouiCOM.Item osrc = oform.Items.Item("151");
                         StTDS.Top = osrc.Top + 15;
                         StTDS.Height = osrc.Height;
                         StTDS.Width = osrc.Width;
@@ -48,7 +48,7 @@ namespace TDS_VDS_ADD_ON_FINAL.Modules
 
 
                         SAPbouiCOM.Item EtTDS = oform.Items.Add("ET_TDS", SAPbouiCOM.BoFormItemTypes.it_EDIT); // we are going to create
-                        SAPbouiCOM.Item orsc1 = oform.Items.Item("52");
+                        SAPbouiCOM.Item orsc1 = oform.Items.Item("152");
                         EtTDS.Top = StTDS.Top;
                         EtTDS.Height = orsc1.Height;
                         EtTDS.Width = orsc1.Width;
@@ -111,12 +111,6 @@ namespace TDS_VDS_ADD_ON_FINAL.Modules
 
 
                     }
-
-
-
-
-
-
                 }
 
 
@@ -178,10 +172,20 @@ namespace TDS_VDS_ADD_ON_FINAL.Modules
 
                     SAPbouiCOM.ComboBox compi = (SAPbouiCOM.ComboBox)oForm.Items.Item("87").Specific;
                     string period = compi.Selected.Description;
-                    string numberPart = period.Substring(2); // e.g. "2425"
-                    string part1 = numberPart.Substring(0, 2); // "24"
-                    string part2 = numberPart.Substring(2, 2); // "25"
-                    string result = part1 + "-" + part2;
+                    // Build query
+                    string sql = $@"SELECT ""Indicator"" FROM ""NNM1"" WHERE ""SeriesName"" = '{period}'";
+
+                    // Run query
+                    SAPbobsCOM.Recordset oRSp = (SAPbobsCOM.Recordset)Global.oComp.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset);
+                    oRSp.DoQuery(sql);
+
+                    // Store in string
+                    string indicator = "";
+                    if (!oRSp.EoF)
+                    {
+                        indicator = oRSp.Fields.Item("Indicator").Value.ToString();
+                    }
+
 
                     string query = "";
                     SAPbobsCOM.Recordset oRS = (SAPbobsCOM.Recordset)Global.oComp.GetBusinessObject(SAPbobsCOM.BoObjectTypes.BoRecordset);
@@ -192,7 +196,7 @@ namespace TDS_VDS_ADD_ON_FINAL.Modules
                           WHERE ""DocNum"" = '" + docnum + @"' 
                             AND ""CardCode"" = '" + code + @"' 
                             AND ""DocTotal"" = '" + amt + @"' 
-                            AND ""PIndicator"" = '" + result + @"'";
+                            AND ""PIndicator"" = '" + indicator + @"'";
                     }
                     else if (doctype == "204")
                     {
@@ -200,7 +204,7 @@ namespace TDS_VDS_ADD_ON_FINAL.Modules
                           WHERE ""DocNum"" = '" + docnum + @"' 
                             AND ""CardCode"" = '" + code + @"' 
                             AND ""DocTotal"" = '" + amt + @"' 
-                            AND ""PIndicator"" = '" + result + @"'";
+                            AND ""PIndicator"" = '" + indicator + @"'";
                     }
 
                     oRS.DoQuery(query);
